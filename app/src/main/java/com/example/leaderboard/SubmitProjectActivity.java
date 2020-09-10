@@ -21,10 +21,14 @@ import android.widget.TextView;
 import com.example.leaderboard.ui.main.GADSDeveloperSubmitModel;
 import com.example.leaderboard.ui.main.GADSDevelopersHoursModel;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import java.util.List;
 import java.util.Objects;
 
+import okhttp3.OkHttpClient;
+import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -52,11 +56,19 @@ public class SubmitProjectActivity extends AppCompatActivity {
         FloatingActionButton button_popup_close = dialog.findViewById(R.id.popup_image_button_close);
         Button button_pop_up_yes = dialog.findViewById(R.id.popup_button_yes);
 
+
+
+
+        Gson gson = new GsonBuilder()
+                .setLenient()
+                .create();
+
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl("https://docs.google.com/forms/d/e/")
-                .addConverterFactory(GsonConverterFactory.create())
+                .addConverterFactory(GsonConverterFactory.create(gson))
                 .build();
         RequestInterface request = retrofit.create(RequestInterface.class);
+
 
 
         button_submit_project.setOnClickListener(new View.OnClickListener() {
@@ -90,11 +102,13 @@ public class SubmitProjectActivity extends AppCompatActivity {
                         tvs_email = tv_email.getText().toString().trim();
                         tvs_github =tv_github.getText().toString().trim();
 
-                        Call<GADSDeveloperSubmitModel> call = request.sendDetails(tvs_fname,tvs_lname,tvs_email,tvs_github);
-                        call.enqueue(new Callback<GADSDeveloperSubmitModel>(){
+
+
+                            Call<Void> call = request.sendDetails(tvs_fname,tvs_lname,tvs_email,tvs_github);
+                            call.enqueue(new Callback<Void>(){
 
                             @Override
-                            public void onResponse(Call<GADSDeveloperSubmitModel> call, Response<GADSDeveloperSubmitModel> response) {
+                            public void onResponse(Call<Void> call, Response<Void> response) {
                                 if(response.isSuccessful()){
                                 dialog.setContentView(R.layout.popup_success);
                                 dialog.show();
@@ -104,7 +118,10 @@ public class SubmitProjectActivity extends AppCompatActivity {
                             }
 
                             @Override
-                            public void onFailure(Call<GADSDeveloperSubmitModel> call, Throwable t) {
+                            public void onFailure(Call<Void> call, Throwable t) {
+                                Log.d("Error","Throwable said"+ t.getMessage());
+                                dialog.setContentView(R.layout.popup_fail);
+                                dialog.show();
                                 call.cancel();
                             }
                         });
